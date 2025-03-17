@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+	
+  <title>Music Artists & Popular Tracks Knowledge Graph in 2023</title>
+
+  <!-- script src="lib/neo4j-web.min.js"></script -->
+  <script src="lib/cytoscape.min.js"></script>
+  <script src="lib/cola.min.js"></script>
+  <script src="lib/cytoscape-cola.js"></script>
+  <script src="lib/layout-base.js"></script>
+  <script src="lib/cose-base.js"></script>
+  <script src="lib/cytoscape-fcose.js"></script>
+  <script src="lib/weaver.min.js"></script>
+  <script src="lib/cytoscape-spread.js"></script>
+  <script src="lib/SP.get.api.js"></script>
+  <!-- script src="lib/SP.post.api.js"></script -->
+  
+</head>
+
+<body style='font-family:Arial, Helvetica, sans-serif;'>
+
+<!-- HEADER - CURRENTLY NOT USED. 
+  <header style="border-bottom: 1px solid purple; min-height: 50px;">
+      <h1 style='text-shadow: 1px 1px hsl(0, 100%, 80%); color: hsl(336, 100%, 30%)'>&nbsp;&nbsp;
+	  <button id='openLeftpanel' class='openLeftpanel'>&#9776;</button>&nbsp;&nbsp;
+	  SingPioneers - <span id='header' style='color: hsl(240, 100%, 30%)'>Knowledge Graph</span>
+	  </h1>
+  </header>
+-->
+
+  <div id='main' class='flex-container' >
+
+    <div id='main-leftmenu' class='main-leftmenu'>
+
+        <h2 style='color:rgb(153, 48, 0);'>Browse by</h2>
+		<small>Click on a collapsible menu below</small>
+    <button class="accordion">Artist Collaboration Analysis</button>
+		<div class="panel">
+      <p>
+        <button id="collaborations">Most Frequent Collaborators Analysis</button><br/>
+      </p>
+		</div>
+        <button class="accordion">Top Songs Filter </button>
+    <div class="panel">	
+      <br/>
+      <div>
+	  <b>Enter the musical attributes you would like to explore 
+	  (please select from:'danceability'、'valence'、'energy'、'acousticness')
+	  </b>
+        <label for="Pioneer">Step 1. Enter attribute1</label>
+        <input id="attribute1" type="text" value="energy">
+        <div style="display: flex;">
+          <span style="flex: 1;">min(from:0)</span>
+          <input id="min_attribute1" type="number" value="70" placeholder="min_attribute1" style="width: 70%;">
+        </div>
+        <div style="display: flex;">
+          <span style="flex: 1;">max(to:100)</span>
+          <input id="max_attribute1" type="number" value="90" placeholder="max_attribute1" style="width: 70%;">
+        </div>
+      </div>
+      <div>
+        <label for="Pioneer">Step 2. Enter attribute2</label>
+        <input id="attribute2" type="text" value="danceability">
+        <div style="display: flex;">
+          <span style="flex: 1;">min(from:0)</span>
+          <input id="min_attribute2" type="number" value="60" placeholder="min_attribute2" style="width: 70%;">
+        </div>
+        <div style="display: flex;">
+          <span style="flex: 1;">max(to:100)</span>
+          <input id="max_attribute2" type="number" value="80" placeholder="max_attribute2" style="width: 70%;">
+        </div>
+      </div>
+      <p>
+        <span>Step 3. Click</span> 
+        <button id="checkbox_submit">Submit</button>
+      </p>
+
+		</div>
+    <button class="accordion">Potential Partnership Finder</button>
+    <div class="panel">
+      <p>
+	  	<b>Please select the Artist you would like to explore the potential partnerships with:</b>
+        <select id="Pioneer" name="Pioneer">
+          <option value='21 Savage'>Select</option>
+          <option value='21 Savage'>21 Savage</option>
+          <option value='The Creator'>The Creator</option>
+          <option value='Kumaar'>Kumaar</option>
+          <option value='Vishal Dadlani'>Vishal Dadlani</option>
+          <option value='Justin Bieber'>Justin Bieber</option>
+		  <option value='Drake'>Drake</option>
+		  <option value='The Weeknd'>The Weeknd</option> 
+        </select>
+      </p>
+	  
+
+    </div>
+ <!-- 新增 Related Sites -->
+      <button class="accordion">Related Sites</button>
+      <div class="panel" style="font-weight:550; color:rgb(135, 39, 180); font-size:0.9em">
+        <p><a href='https://www.kaggle.com/datasets/nelgiriyewithana/top-spotify-songs-2023' target='_blank'>Top Spotify Songs 2023 - Kaggle</a></p>
+      </div>
+
+    </div>
+    <div id='main-panel' class='main-panel'>
+      <h2 id="query" style='text-shadow: 1px 1px hsl(0, 100%, 80%);'>Music Artists & Popular Tracks Knowledge Graph in 2023</h2>
+      <p>
+        <b>Click on buttons on the left panel to select types of information to display on the canvas below.</b>
+        <br/>
+      </p>
+      <div id='canvasWithMenu' style='display:block; height:800px; width:1150px;'>
+		    <div id='canvas-menu' style='min-height:38px; min-width:600px; background-color:hsl(282,86%,90%); padding:2px; display:block'>
+          <b>Change graph layout: 
+            <button id="layout-breadthfirst" style="background-color:hsl(195, 100%, 95%);">Tree</button> 
+            <button id="layout-concentric" style="background-color:hsl(195, 100%, 95%);">Concentric</button> 
+            <button id="layout-fcose" style="background-color:hsl(195, 100%, 95%);">Force-Cose</button> 
+            <button id="layout-cola" style="background-color:hsl(195, 100%, 95%);">Force-Cola (default)</button> 
+            <button id="layout-spread" style="background-color:hsl(195, 100%, 95%);">Spread-out graph</button> 
+            <button id="clear_canvas" style="background-color:hsl(60,100%,70%);">Clear canvas</button> 
+            <button id="zoom-minus" style="background-color:hsl(60,100%,70%); border-radius:50%">-</button>
+            <button id="zoom-reset" style="background-color:hsl(60,100%,70%);">Reset zoom</button>
+            <button id="zoom-plus" style="background-color:hsl(60,100%,70%); border-radius:50%">+</button> 
+            <button id="fullscreen" style="background-color:hsl(80,100%,70%);">Open fullscreen</button>
+          </b>
+          <br/>
+		      Suggestion: Click on a node or link to display metadata. Double-click to expand the node with neighboring nodes.</div>
+        <div id="cy" style='height:100%; width:100%; display:block; border-style:solid; border-width:1px; border-color:hsl(280,53%,60%); background-color:hsl(280,53%,98%); box-shadow: rgb(222,160,248) 5px 5px;'></div>
+		    <h2 id='query2' style='text-shadow: 1px 1px hsl(0, 100%, 80%);'></h2>
+        <div id='table1'></div>
+        <div id='graph-popup1' class='modal2'>
+          <div class='modal2-content'>
+            <span id='graph-popup1-close' class='close'>&nbsp; &times;</span>
+            <span id='graph-popup1-pin' class='pin' style='font-size:0.8em'>&#128204;</span>
+            <p style='color: hsl(264, 80%, 40%); font-weight: 500;'><u>Drag</u> this info box to new location.<br/>
+            <u>Double-click</u> in the box to close, or click on X<br/>
+            <u>Click</u> on <span id='graph-popup1-pin2' style='font-size:0.9em'>&#128204;</span> to pin box, & resize</p>
+            <hr/>
+            <div id='graph-popup1-content'> </div>
+            <div id='graph-popup1-menu'> 
+              <button id="node-expand">Expand node</button> <button id="node-remove">Remove node</button>
+            </div>
+          </div>
+		    </div>
+      </div>
+    </div>
+  </div>
+
+
+<!-- Side panel -->
+<div id="sidepanel1" class="sidepanel flex-container">
+
+  <!-- left border of toolbox -->
+  <div style='text-align:center;width:20px;font-weight:bold;font-family:arial,sans-serif;background-color: hsl(80, 50%, 70%);'>
+  <br/> <br/>&#9874;<br/> <br/>T<br/>O<br/>O<br/>L<br/>B<br/>O<br/>X
+  </div>
+
+  <div style='padding:10px'>
+
+  <!-- No longer used: ! and x to pin and close the panel -->
+  <!-- span id='sidepanel-close' class='close'>&nbsp; &times;</span -->			  
+  <span id='sidepanel-pin2' class='pin' style='font-size:0.8em'>&#128204;</span>
+
+    <small>Click on a collapsible menu below</small>
+
+    <button class='accordion'>Filter</button>
+    <div id='panel-filter' class='panel'>	
+	
+	  <div id='panel-filter-help' style='visibility: hidden; color: hsl(336, 100%, 30%)'></div>
+	  
+	  <div id='checkboxes-nodeTypes'>
+	  <br/><span style='color: hsl(336, 100%, 30%)'>First, display a graph on the canvas by clicking on buttons on the left panel.<br/>
+	  Then a list of node types will display here for selection.</span><br/> <br/>
+      </div>
+      <button id="checkbox_clear1" style='visibility: hidden'>&#9744; Uncheck all</button>
+      <button id="checkbox_reset1" style='visibility: hidden'>&#9745; Check all</button><br/>
+      <button id="checkbox_submit1" style='visibility: hidden; background-color:hsl(225, 50%, 90%)'>Apply filter</button><br/> <br/> 
+	  
+	  <div id='checkboxes-edgeTypes'></div>
+      <button id="checkbox_clear2" style='visibility: hidden'>&#9744; Uncheck all</button>
+      <button id="checkbox_reset2" style='visibility: hidden'>&#9745; Check all</button><br/>
+      <button id="checkbox_submit2" style='visibility: hidden; background-color:hsl(225, 50%, 90%)'>Apply filter</button><br/> <br/> 
+    </div>
+		
+    <button class="accordion">Other tools</button>
+    <div class="panel">
+      <p>Forthcoming ...</p>
+    </div>
+  </div>
+</div>
+
+
+<style>
+
+button {  
+  border-width: 1px;
+}
+
+
+/* Graph popup/Info box panel */
+.modal2 {
+  display: none;   /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1;      /* Sit on top */
+  right: 3px;
+  top: 20px;
+  width: 320px; 
+  max-height: 650px; 
+  resize: both;
+  overflow: auto;  /* Enable scroll if needed */
+  padding: 10px;
+}
+
+.modal2-content {
+  background-color: hsl(283, 54%, 95%);
+  text-align: left; 
+  width: 95%;
+  max-height: 610px; 
+  box-shadow: hsl(283, 86%, 80%) 0px 5px;
+  color: hsl(264, 32%, 30%);
+  line-height: 1;
+  font-family: "Times New Roman", Times, serif;
+  font-weight: normal;
+  padding: 10px;
+  overflow: auto;
+}
+
+
+/* The Close Button */
+.close, .pin {
+  color: #888;
+  float: right;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.pin-push {
+  border-style: inset;
+  border-width: 2px;
+  border-color: hsl(260, 100%, 90%);
+  background-color: hsl(260, 100%, 80%);
+}
+
+.close:hover, .close:focus, .pin:hover, .pin:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
+
+/* Style the buttons that are used to open and close the accordion panel */
+
+.accordion {
+  background-color: #eee;
+  cursor: pointer;
+  padding: 5px;
+  width: 100%;
+  text-align: left;
+  border-style: outset;
+  border-width: 2px;
+  outline: none;
+  transition: 0.4s;
+  color: rgb(94,0,97); 
+  font-size: 1em; 
+  font-weight: bold; 
+  text-shadow: 1px 1px hsl(90,30%,80%);
+  box-shadow: rgb(222,160,248) 2px 2px;
+}
+
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.active, .accordion:hover {
+  background-color: hsl(225, 50%, 90%);
+}
+
+/* Style the accordion panel. Note: hidden by default */
+.panel {
+  padding: 0 0px;
+  max-height: 0;
+  overflow: auto;
+  transition: max-height 0.2s ease-out;
+}
+
+.accordion:after {
+  content: '\02795'; /* Unicode character for "plus" sign (+) */
+  font-size: 10px;
+  color: #777;
+  float: right;
+  margin-left: 0px;
+}
+
+.active:after {
+  content: "\2796"; /* Unicode character for "minus" sign (-) */
+}
+
+
+/*** Styles for formatting <div> tags ***/
+
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+}
+
+.main-leftmenu {
+  flex: 0 0 180px;
+  width: 180px;
+  min-height: 100vh;
+  height: 100%;
+  text-align: left; 
+  padding: 10px;
+  background-color: hsl(225, 35%, 85%); 
+}
+
+.main-panel {
+  flex: 50 0 600px;  /* no longer has much effect, as display canvas size is now controlled by javascript */
+  min-width: 600px;  /* no longer has much effect */
+  height: 100%; 
+  text-align: left;
+  padding: 20px;
+}  
+
+
+/* The side navigation menu */
+.sidepanel {
+  /* display: block; */
+  position: fixed; 
+  z-index: 2; /* Sit on top */
+  height: 400px; 
+  width: 270px;
+  top: 180px; 
+  right: -255px;
+  resize: vertical;
+  overflow: auto;  /* Enable scroll if needed */
+  background-color: hsl(80, 22%, 90%);
+  color: hsl(264, 32%, 30%);
+  text-align: left; 
+  line-height: 1;
+  font-family: "Times New Roman", Times, serif;
+  font-weight: normal;
+  padding: 0px;
+  transition-delay: 0s;
+  transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+}
+
+.sidepanel:hover {
+  right: 0px;
+}
+
+.sidepanel-pin, .sidepanel-pin2 {   /* this class is toggled to open sidepanel using script */
+  right: 0px;
+}
+
+
+.transition-delay { transition-delay: 0.5s; }  /* this class is toggled on to delay closing the side panel, using script */
+
+
+/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+  .sidepanel {padding: 5px;}
+}
+
+</style>
+
+</body>
+
+</html>
